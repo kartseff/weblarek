@@ -98,3 +98,161 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+## Данные
+
+### Интерфейс IProduct
+Интерфейс для учета используемых товаров.
+
+interface IProduct {
+  id: string - Уникальный идентификатор товара
+  description: string - Описание товара
+  image: string - Ссылка на изображение товара
+  title: string - Название товара
+  category: string - Категория товара
+  price: number | null - Цена товара (null — если товар недоступен для покупки)
+}
+
+### Интерфейс IBuyer
+Описывает данные покупателя при оформлении заказа.
+
+interface IBuyer {
+  payment: 'card' | 'cash' | '' - Способ оплаты: карта, наличные, а также может быть еще не указан
+  email: string - Email покупателя
+  phone: string - Телефон покупателя
+  address: string - Адрес доставки
+}
+
+### Интерфейс ICartItem
+Интерфейс описывает одну позицию в корзине.
+
+interface ICartItem {
+  productId: string — идентификатор товара  
+  quantity: number — количество единиц товара  
+}
+
+### Интерфейс IOrderPayload
+Интерфейс описывает данные, отправляемые на сервер при оформлении заказа.
+
+interface IOrderPayload {
+  items: ICartItem[] — массив позиций корзины  
+  totalPrice: number — общая сумма заказа  
+  buyer: IBuyer — данные покупателя  
+}
+
+### Интерфейс IValidationErrors
+Интерфейс описывает ошибки валидации, если такие возникнут.
+
+interface IValidationErrors {
+  payment?: string - описание ошибки вида оплаты
+  address?: string - описание ошибки адреса
+  email?: string - описание ошибки email
+  phone?: string - описание ошибки телефона
+}
+
+## Модели данных
+
+### Класс Products
+Отвечает за хранение и работу с каталогом товаров. Хранит массив всех товаров и предоставляет методы для управления этим массивом.
+
+Конструктор:
+`constructor()` - Параметров нет. Создает пустую модель каталога.
+
+Поля класса:  
+`protected items: IProduct[]` — массив всех товаров
+`protected preview: IProduct | null` — выбранная карточка для подробного просмотра
+
+Методы:
+`setItems(items: IProduct[]): void` — сохраняет массив товаров
+`getItems(): IProduct[]` — возвращает массив товаров
+`getProduct(id: string): IProduct | undefined` — получает товар по id, возвращает undefined, если не найден
+`setPreview(item: IProduct): void` — сохраняет выбранную карточку
+`getPreview(): IProduct | null` — возвращает выбранную карточку
+
+### Класс Cart
+Управляет корзиной — хранит выбранные для покупки товары. Хранит массив товаров пользователя и предоставляет методы добавления, удаления, проверки и подсчета.
+
+Конструктор:
+`constructor()` - Параметров нет. Создает пустую модель каталога.
+
+Поля класса:
+`protected items: IProduct[]` — массив товаров, добавленных в корзину (может быть пустым)
+
+Методы:
+`getItems(): IProduct[]` — возвращает массив товаров в корзине
+`addItem(item: IProduct): void` — добавляет товар в корзину
+`removeItem(id: string): void` — удаляет товар из корзины по id
+`clearBasket(): void` — очищает корзину
+`getTotal(): number` — возвращает сумму стоимости всех товаров
+`getCount(): number` — возвращает количество товаров в корзине
+`hasItem(id: string): boolean` — проверяет наличие товара в корзине по id
+
+### Класс Buyer
+Отвечает за управление, хранение, валидацию и очистку данных покупателя. Хранит данные, которые вводит пользователь при оформлении заказа, и проверяет их корректность.
+
+Конструктор:
+`constructor()` - Параметров нет. Создает пустую модель каталога.
+
+Поля класса:
+`protected payment: 'card' | 'cash' | ''` — вид оплаты
+`protected address: string` — адрес доставки
+`protected phone: string` — телефон покупателя
+`protected email: string` — email покупателя
+
+Методы:
+`setPayment(payment: 'card' | 'cash' | ''): void` — сохранить вид оплаты
+`setAddress(address: string): void` — сохранить адрес доставки
+`setPhone(phone: string): void` — сохранить телефон
+`setEmail(email: string): void` — сохранить email
+`getBuyerData(): IBuyer` — получить все данные покупателя
+`clearBuyerData(): void` — сбросить все поля
+`validate(): IValidationErrors` — проверить валидность всех полей, вернуть объект с ошибками, вернуть объект ошибок вида { payment?: string; address?: string; email?: string; phone?: string }, отсутствие свойства означает, что поле прошло валидацию
+
+## Слой коммуникации
+
+### Интерфейс IApi
+Интерфейс клиента для выполнения HTTP-запросов.
+
+interface IApi {
+  get<T>(path: string): Promise<T> - выполняет GET-запрос по пути `path`, возвращает данные типа T
+  post<T, U>(path: string, payload: T): Promise<U> - выполняет POST-запрос по пути `path` с телом `payload` типа T, возвращает данные типа U
+}
+
+### Интерфейс IProductResponse
+Интерфейс описывает ответ сервера на GET /product/.
+
+interface IProductResponse {
+  items: IProduct[] — массив товаров
+}
+
+### Интерфейс IOrderPayload
+Интерфейс описывает данные, отправляемые на сервер при оформлении заказа.
+
+interface IOrderPayload {
+  items: ICartItem[] — массив позиций корзины
+  totalPrice: number — общая сумма заказа
+  buyer: IBuyer — данные покупателя
+}
+
+### Интерфейс IOrderResponse
+Интерфейс описывает ответ сервера на POST /order/.
+
+interface IOrderResponse {
+  orderId: string — идентификатор созданного заказа
+}
+
+### Класс ApiService
+Отвечает за взаимодействие с сервером «Веб-Ларёк». Он инкапсулирует методы получения каталога товаров и отправки заказа, используя готовый клиент Api из стартового набора.
+
+Конструктор:
+`constructor(apiClient: IApi = new Api(import.meta.env.VITE_API_ORIGIN))` - принимает экземпляр клиента Api, базовый URL из .env.
+
+Поля класса:
+`protected apiClient: IApi` — экземпляр клиента Api
+
+Методы:
+`async fetchProducts(): Promise<IProductResponse>` — GET /product/. Возвращает объект { items: IProduct[] }
+
+`async sendOrder(payload: IOrderPayload): Promise<IOrderResponse>` - POST /order/. Отправляет payload, возвращает { orderId: string }
+
+
+
