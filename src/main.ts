@@ -40,10 +40,9 @@ buyerModel.clearBuyerData();
 console.log('После очистки:', buyerModel.getBuyerData());
 console.log('Ошибки валидации:', buyerModel.validate());
 
-(async () => {
-    const productsModel = new Products();
-    const apiService = new ApiService();
+const apiService = new ApiService();
 
+(async () => {
     try {
         const response = await apiService.fetchProducts();
         productsModel.setItems(response.items);
