@@ -29,25 +29,36 @@ export interface IValidationErrors {
 }
 
 export interface IProductResponse {
-  items: IProduct[];
+    items: IProduct[];
 }
 
-export type IOrderResponse = {
-  orderId: string;
-};
+export type IOrderResponse = { orderId: string }
 
 export interface IApi {
-  get<T>(path: string): Promise<T>;
-  post<T, U>(path: string, payload: T): Promise<U>;
+    get<T>(path: string): Promise<T>;
+    post<T, U>(path: string, payload: T): Promise<U>;
 }
 
 export interface ICartItem {
-  productId: string
-  quantity: number
+    productId: string
+    quantity: number
 }
 
 export interface IOrderPayload {
-  items: ICartItem[]
-  totalPrice: number
-  buyer: IBuyer
+    items: ICartItem[]
+    totalPrice: number
+    buyer: IBuyer
+}
+
+export interface IProductsChangedData {
+  products: IProduct[];
+}
+
+export interface IPreviewChangedData {
+  preview: IProduct;
+}
+
+export interface ICartChangedData {
+  count: number;
+  total: number;
 }

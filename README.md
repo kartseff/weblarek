@@ -155,7 +155,7 @@ interface IValidationErrors {
 Отвечает за хранение и работу с каталогом товаров. Хранит массив всех товаров и предоставляет методы для управления этим массивом.
 
 Конструктор:
-`constructor()` - Параметров нет. Создает пустую модель каталога.
+`constructor(protected events: IEvents)` - Принимает экземпляр системы действий.
 
 Поля класса:  
 `protected items: IProduct[]` — массив всех товаров
@@ -172,7 +172,7 @@ interface IValidationErrors {
 Управляет корзиной — хранит выбранные для покупки товары. Хранит массив товаров пользователя и предоставляет методы добавления, удаления, проверки и подсчета.
 
 Конструктор:
-`constructor()` - Параметров нет. Создает пустую модель каталога.
+`constructor(protected events: IEvents)` - Принимает экземпляр системы действий.
 
 Поля класса:
 `protected items: IProduct[]` — массив товаров, добавленных в корзину (может быть пустым)
@@ -190,7 +190,7 @@ interface IValidationErrors {
 Отвечает за управление, хранение, валидацию и очистку данных покупателя. Хранит данные, которые вводит пользователь при оформлении заказа, и проверяет их корректность.
 
 Конструктор:
-`constructor()` - Параметров нет. Создает пустую модель каталога.
+`constructor(protected events: IEvents)` - Принимает экземпляр системы действий.
 
 Поля класса:
 `protected payment: 'card' | 'cash' | ''` — вид оплаты
@@ -251,8 +251,239 @@ interface IOrderResponse {
 
 Методы:
 `async fetchProducts(): Promise<IProductResponse>` — GET /product/. Возвращает объект { items: IProduct[] }
-
 `async sendOrder(payload: IOrderPayload): Promise<IOrderResponse>` - POST /order/. Отправляет payload, возвращает { orderId: string }
 
+## Слой Представления
 
+### Интерфейс IHeader
+Интерфейс для типизации данных Header компонента
 
+interface IHeader {
+    counter: number;
+}
+
+### Тип TCardCatalog
+Тип для передачи данных в компоненты Card
+
+type TCardCatalog = Pick<IProduct, `image` | `category`>;
+
+### Интерфейс ICardActions
+Интерфейс для обработки действий карточки
+
+interface ICardActions {
+  onClick?: (product: HTMLElement) => void;
+}
+
+### Интерфейс ISuccess
+Интерфейс для данных экрана успеха
+
+interface ISuccess {
+    total: number;
+}
+
+### Класс Modal extends Component 
+Модальное окно — контейнер для отображения различного содержимого. Отображает содержимое (компоненты) в модальном окне с возможностью открытия/закрытия.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент модального окна из index.html и экземпляр системы событий
+
+Поля класса:
+`protected closeButton: HTMLElement` — кнопка закрытия (крестик)
+
+Методы:
+`open(): void` — открыть модальное окно (добавить класс active)
+`close(): void` — закрыть модальное окно (удалить класс active)
+`setContent(component: Component): void` — установить содержимое (заменить HTML в контейнере)
+
+События:
+При клике вне содержимого (по overlay): emit('modal:close')
+При клике на кнопку закрытия: emit('modal:close')
+
+### Класс Header extends Component
+Шапка страницы с кнопкой корзины и счетчиком товаров. Отображает иконку корзины с количеством выбранных товаров.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент заголовка из index.html и экземпляр системы событий
+
+Поля класса:
+`protected basketButton: HTMLButtonElement` — кнопка корзины
+`protected counterElement: HTMLElement` — элемент счетчика
+
+Методы:
+`setCounter(value: number): void` — обновить счетчик (отобразить количество товаров)
+
+События:
+При клике на кнопку корзины: emit('basket:open')
+
+### Класс Gallery extends Component
+Каталог товаров на главной странице. Отображает список карточек товаров в виде сетки.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент галереи (каталога товаров) из index.html и экземпляр системы событий
+
+Поля класса:
+Контейнер передаётся в конструктор и становится this.container из Component
+
+Методы:
+`set items(items: HTMLElement[]): void` — отобразить массив карточек товаров (использует replaceChildren для замены содержимого)
+
+### Абстрактный класс Card<T> extends Component
+Базовый класс для всех вариантов отображения товара. Общий функционал вынесен для CardCatalog, CardPreview и CartItem.
+
+Конструктор:
+`protected constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент товара из index.html и возможные действия
+
+Поля класса:
+`protected titleElement: HTMLElement` — название товара
+`protected imageElement: HTMLImageElement` — изображение
+`protected priceElement: HTMLElement` — цена
+`protected categoryElement: HTMLElement` — категория
+`protected descriptionElement?: HTMLElement` — описание (опционально)
+
+Методы:
+`set title(value: string): void` — установить название товара в элемент
+`set price(value: number | null): void` — установить цену товара (null → "Бесценно")
+`set category(value: string): void` — установить категорию с переключением CSS-классов
+`set image(value: string): void` — установить изображение товара
+`set description(value: string): void` — установить описание товара (если есть)
+
+### Класс CardCatalog extends Card<TCardCatalog>
+Карточка товара в каталоге. Отображает товар в каталоге: изображение, название, категория, цена.
+
+Конструктор:
+`constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент карточки из index.html и возможные действия
+
+Поля класса:
+`protected imageElement: HTMLImageElement` — изображение товара
+`protected categoryElement: HTMLElement` — категория с CSS-классом цвета
+
+Методы:
+`render(data: IProduct): HTMLElement` — отрендерить карточку с данными товара
+
+События:
+При клике на карточку: emit('card:select', product)
+
+### Класс CardPreview extends Card<IProduct>
+Карточка товара в модальном окне. Отображает полную информацию о товаре в модальном окне с кнопкой действия.
+
+Конструктор:
+`constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент ревью карточки из index.html и возможные действия
+
+Поля класса:
+`protected descriptionElement: HTMLElement` — описание товара
+`protected buttonElement: HTMLButtonElement` — кнопка Купить/Удалить
+
+Методы:
+`render(data: IProduct): HTMLElement` — отрендерить превью карточки с полной информацией
+`setButtonState(product: IProduct): void` — установить состояние кнопки (Купить/Удалить/Бесценно)
+`setButtonText(text: string): void` — установить текст кнопки
+
+События:
+При клике на кнопку: emit('product:action', {product}) — логика определяется в Presenter
+
+### Класс CartItem extends Card<IProduct>
+Строка товара в корзине. Отображает товар в списке корзины с кнопкой удаления.
+
+Конструктор:
+`constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент строчки карточки в корзине из index.html и возможные действия
+
+Поля класса:
+`protected removeButton: HTMLButtonElement` — кнопка удаления из корзины
+
+Методы:
+`render(data: IProduct): HTMLElement` — отрендерить товар в корзине (без изображения, только текст и цена)
+
+События:
+При клике на кнопку удаления: emit('product:remove', product.id)
+
+### Абстрактный класс Form extends Component
+Базовый класс для форм. Общий функционал валидации и обработки ошибок для FormOrder и FormContacts.
+
+Конструктор:
+`protected constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент формы из index.html и экземпляр системы действий
+
+Поля класса:
+`protected formElement: HTMLFormElement` — элемент формы
+`protected submitButton: HTMLButtonElement` — кнопка отправки
+`protected inputElements: HTMLInputElement[]` — массив всех полей ввода
+`protected errorElement: HTMLElement` — контейнер для ошибок валидации
+
+Методы:
+`setErrors(errors: IValidationErrors): void` — отобразить ошибки валидации в контейнере
+`toggleSubmit(disabled: boolean): void` — деактивировать/активировать кнопку отправки
+`protected onInputChange(): void` — внутренний обработчик изменения полей (проверка валидации)
+`protected getFormData(): Record<string, string | number>` — получить все значения из полей формы
+
+### Класс FormOrder extends Form
+Форма выбора оплаты и адреса доставки (Шаг 1). Получает способ оплаты и адрес доставки от пользователя.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент формы выбора оплаты и адреса доставки из index.html и экземпляр системы действий
+
+Поля класса:
+`protected paymentButtons: HTMLButtonElement[]` — кнопки выбора способа оплаты
+`protected addressInput: HTMLInputElement` — поле ввода адреса
+`protected selectedPayment: string = ''` — текущая выбранная оплата
+
+Методы:
+`getPayment(): string` — получить выбранный способ оплаты
+`getAddress(): string` — получить введённый адрес
+`protected onInputChange(): void` — проверить валидацию (оплата и адрес заполнены)
+`clear(): void` — очистить форму после успешного заказа
+
+События:
+При отправке формы: emit('order:submit', {payment, address})
+
+### Класс FormContacts extends Form
+Форма ввода email и телефона (Шаг 2). Получает контактные данные покупателя.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент формы ввода email и телефона из index.html и экземпляр системы действий
+
+Поля класса:
+`protected emailInput: HTMLInputElement` — поле ввода email
+`protected phoneInput: HTMLInputElement` — поле ввода телефона
+
+Методы:
+`getEmail(): string` — получить введённый email
+`getPhone(): string` — получить введённый телефон
+`protected onInputChange(): void` — проверить валидацию (email и телефон корректны)
+`clear(): void` — очистить форму после успешного заказа
+
+События:
+При отправке формы: emit('contacts:submit', {email, phone})
+
+### Класс CartView extends Component
+Содержимое модального окна корзины. Отображает список товаров в корзине, итоговую стоимость и кнопку оформления.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент корзины из index.html и экземпляр системы действий
+
+Поля класса:
+`protected itemsContainer: HTMLElement` — контейнер для товаров
+`protected totalElement: HTMLElement` — элемент итоговой цены
+`protected checkoutButton: HTMLButtonElement` — кнопка «Оформить»
+
+Методы:
+`set items(items: HTMLElement[]): void` — отобразить список товаров в контейнере (использует replaceChildren)
+`set total(value: number): void` — обновить отображение общей стоимости
+`set disabled(disabled: boolean): void` — деактивировать кнопку при пустой корзине
+
+События:
+При клике на кнопку «Оформить»: emit('order:start')
+
+### Класс Success extends Component
+Содержимое модального окна успешного заказа. Показывает подтверждение успешного оформления с указанной суммой.
+
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент окна успешного заказа из index.html и экземпляр системы действий
+
+Поля класса:
+`protected descriptionElement: HTMLElement` — элемент описания с сообщением об успехе
+`protected closeButton: HTMLButtonElement` — кнопка закрытия
+
+Методы:
+`render(data: ISuccess): HTMLElement` — отрендерить экран успеха с сообщением и суммой
+
+События:
+При клике на кнопку закрытия: emit('success:close')

@@ -1,4 +1,5 @@
 import { IBuyer, IValidationErrors } from '../../types/index';
+import { IEvents } from '../base/Events';
 
 export class Buyer {
     protected payment: IBuyer['payment'] = '';
@@ -6,24 +7,26 @@ export class Buyer {
     protected email: string = '';
     protected phone: string = '';
 
-    constructor() {
-    
-    }
+    constructor(protected events: IEvents) {}
 
     setPayment(value: IBuyer['payment']): void {
         this.payment = value;
+        this.events.emit('buyer:payment-changed', { payment: value });
     }
 
     setAddress(value: string): void {
         this.address = value;
+        this.events.emit('buyer:address-changed', { address: value });
     }
 
     setEmail(value: string): void {
         this.email = value;
+        this.events.emit('buyer:email-changed', { email: value });
     }
 
     setPhone(value: string): void {
         this.phone = value;
+        this.events.emit('buyer:phone-changed', { phone: value });
     }
 
     getBuyerData(): IBuyer {
@@ -40,6 +43,7 @@ export class Buyer {
         this.address = '';
         this.email = '';
         this.phone = '';
+        this.events.emit('buyer:cleared');
     }
 
     validate(): IValidationErrors {
