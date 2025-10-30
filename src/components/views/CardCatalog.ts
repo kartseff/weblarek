@@ -1,13 +1,14 @@
 import { Card, ICard } from './Card';
 import { ensureElement } from '../../utils/utils';
 import { categoryMap } from '../../utils/constants';
+import { CDN_URL } from '../../utils/constants';
 
 interface ICardCatalog extends ICard {
 	image: string;
 	category: string;
 }
 
-interface ICardActions {
+export interface ICardActions {
 	onClick?: () => void;
 }
 
@@ -29,7 +30,7 @@ export class CardCatalog extends Card<ICardCatalog> {
 	}
 
 	set image(value: string) {
-		this.setImage(this.imageElement, value, this.title)
+		this.setImage(this.imageElement, `${CDN_URL}${value}`, this.title)
 	}
 
 	set category(value: string) {

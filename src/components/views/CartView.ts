@@ -1,13 +1,14 @@
 import { Component } from '../base/Component';
 import { ensureElement } from '../../utils/utils';
 
-interface ICartView {
+export interface ICartView {
 	content: HTMLElement[];
     total: number;
+	isEmpty: boolean;
 }
 
 interface ICartViewActions {
-	onCheckout?: () => void;
+	onClick?: () => void;
 }
 
 export class CartView extends Component<ICartView> {
@@ -18,12 +19,12 @@ export class CartView extends Component<ICartView> {
 	constructor(container: HTMLElement, actions?: ICartViewActions) {
 		super(container);
 
-		this.contentElement = ensureElement<HTMLUListElement>('.basket__list', this.container);
+		this.contentElement = ensureElement<HTMLElement>('.basket__list', this.container);
 		this.totalPriceElement = ensureElement<HTMLElement>('.basket__price', this.container);
 		this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
 
-		if (actions?.onCheckout) {
-			this.orderButton.addEventListener('click', actions.onCheckout);
+		if (actions?.onClick) {
+			this.orderButton.addEventListener('click', actions.onClick);
 		}
 	}
 

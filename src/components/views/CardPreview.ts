@@ -1,16 +1,15 @@
 import { Card, ICard } from './Card';
 import { ensureElement } from '../../utils/utils';
 import { categoryMap } from '../../utils/constants';
+import { CDN_URL } from '../../utils/constants';
+import { ICardActions } from './CardCatalog';
 
 interface ICardPreview extends ICard {
 	image: string;
 	description: string;
 	category: string;
-}
-
-interface ICardPreviewActions {
-	onAddToCart?: () => void;
-	onRemoveFromCart?: () => void;
+	isInCart: boolean;
+	isAvailable: boolean;
 }
 
 type CategoryKey = keyof typeof categoryMap;
@@ -20,8 +19,9 @@ export class CardPreview extends Card<ICardPreview> {
 	protected descriptionElement: HTMLElement;
 	protected categoryElement: HTMLElement;
 	protected buyButton: HTMLButtonElement;
+	private _isInCart: boolean = false;
 
-	constructor(container: HTMLElement, actions?: ICardPreviewActions) {
+	constructor(container: HTMLElement, actions?: ICardActions) {
 		super(container);
 
 		this.imageElement = ensureElement<HTMLImageElement>('.card__image', this.container);
@@ -29,17 +29,13 @@ export class CardPreview extends Card<ICardPreview> {
 		this.categoryElement = ensureElement<HTMLElement>('.card__category', this.container);
 		this.buyButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
 
-		this.buyButton.addEventListener('click', () => {
-		if (this.isInCart) {
-			actions?.onRemoveFromCart?.();
-		} else {
-			actions?.onAddToCart?.();
-		}
-    });
+		if (actions?.onClick) {
+            this.buyButton.addEventListener('click', actions.onClick);
+        }
 	}
 
 	set image(value: string) {
-		this.setImage(this.imageElement, value, this.title);
+		this.setImage(this.imageElement, `${CDN_URL}${value}`, this.title)
 	}
 
 	set description(value: string) {
@@ -53,25 +49,20 @@ export class CardPreview extends Card<ICardPreview> {
 		}
 	}
 
-	// Устанавливает состояние кнопки в зависимости от наличия товара в корзине
 	set isInCart(value: boolean) {
-		this.isInCart = value;
+		this._isInCart = value;
 		this.updateButtonState();
 	}
 
-	// Устанавливает доступность кнопки в зависимости от цены
-	set isAvailable(available: boolean) {
-		this.buyButton.disabled = !available;
-		if (!available) {
-			this.buyButton.textContent = 'Недоступно';
-		}
-	}
+	set isAvailable(value: boolean) {
+        this.buyButton.disabled = !value;
+        this.updateButtonState();
+    }
 
-	// Обновляет текст кнопки в зависимости от состояния
 	private updateButtonState(): void {
 		if (this.buyButton.disabled) {
 			this.buyButton.textContent = 'Недоступно';
-		} else if (this.isInCart) {
+		} else if (this._isInCart) {
 			this.buyButton.textContent = 'Удалить из корзины';
 		} else {
 			this.buyButton.textContent = 'Купить';

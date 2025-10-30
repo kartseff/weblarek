@@ -49,16 +49,3 @@ export interface IOrderPayload {
     totalPrice: number
     buyer: IBuyer
 }
-
-export interface IProductsChangedData {
-  products: IProduct[];
-}
-
-export interface IPreviewChangedData {
-  preview: IProduct;
-}
-
-export interface ICartChangedData {
-  count: number;
-  total: number;
-}

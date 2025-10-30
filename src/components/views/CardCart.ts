@@ -2,11 +2,11 @@ import { Card, ICard } from './Card';
 import { ensureElement } from '../../utils/utils';
 
 interface ICardCart extends ICard {
-	index: number;
+	itemIndex: number;
 }
 
 interface ICardCartActions {
-	onRemove?: () => void;
+	onClick?: () => void;
 }
 
 export class CardCart extends Card<ICardCart> {
@@ -17,14 +17,14 @@ export class CardCart extends Card<ICardCart> {
 		super(container);
 
 		this.indexElement = ensureElement<HTMLElement>('.basket__item-index', this.container);
-		this.deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete-btn', this.container);
+		this.deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', this.container);
 
-		if (actions?.onRemove) {
-			this.deleteButton.addEventListener('click', actions.onRemove);
+		if (actions?.onClick) {
+			this.deleteButton.addEventListener('click', actions.onClick);
 		}
 	}
 
-	set index(value: number) {
+	set itemIndex(value: number) {
 		this.indexElement.textContent = String(value);
 	}
 }

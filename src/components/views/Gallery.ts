@@ -10,7 +10,6 @@ export class Gallery extends Component<IGallery> {
     
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
-
         this.catalogElement = this.container;
     }
 

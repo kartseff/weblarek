@@ -11,22 +11,22 @@ export class Buyer {
 
     setPayment(value: IBuyer['payment']): void {
         this.payment = value;
-        this.events.emit('buyer:payment-changed', { payment: value });
+        this.events.emit('buyer:payment-changed');
     }
 
     setAddress(value: string): void {
         this.address = value;
-        this.events.emit('buyer:address-changed', { address: value });
+        this.events.emit('buyer:address-changed');
     }
 
     setEmail(value: string): void {
         this.email = value;
-        this.events.emit('buyer:email-changed', { email: value });
+        this.events.emit('buyer:email-changed');
     }
 
     setPhone(value: string): void {
         this.phone = value;
-        this.events.emit('buyer:phone-changed', { phone: value });
+        this.events.emit('buyer:phone-changed');
     }
 
     getBuyerData(): IBuyer {
