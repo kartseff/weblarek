@@ -1,19 +1,16 @@
 import { Card, ICard } from './Card';
 import { ensureElement } from '../../utils/utils';
+import { ICardActions } from './CardCatalog';
 
 interface ICardCart extends ICard {
 	itemIndex: number;
-}
-
-interface ICardCartActions {
-	onClick?: () => void;
 }
 
 export class CardCart extends Card<ICardCart> {
 	protected indexElement: HTMLElement;
 	protected deleteButton: HTMLButtonElement;
 
-	constructor(container: HTMLElement, actions?: ICardCartActions) {
+	constructor(container: HTMLElement, actions?: ICardActions) {
 		super(container);
 
 		this.indexElement = ensureElement<HTMLElement>('.basket__item-index', this.container);

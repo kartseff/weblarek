@@ -10,7 +10,7 @@ export abstract class Form<T extends IFormState> extends Component<T> {
 	protected submitButton: HTMLButtonElement;
 	protected errorsElement: HTMLElement;
 
-	constructor(container: HTMLElement) {
+	protected constructor(container: HTMLElement) {
 		super(container);
 
 		this.submitButton = ensureElement<HTMLButtonElement>('.modal__actions button[type="submit"]', this.container);
