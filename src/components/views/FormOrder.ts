@@ -1,5 +1,6 @@
 import { Form, IFormState } from './Form';
 import { ensureElement, ensureAllElements } from '../../utils/utils';
+import { IEvents } from '../base/Events';
 
 interface IFormOrderActions {
     onPaymentChange?: (payment: string) => void;
@@ -8,11 +9,11 @@ interface IFormOrderActions {
 }
 
 export class FormOrder extends Form<IFormState> {
-    protected paymentButtons: HTMLButtonElement[];
-    addressInput: HTMLInputElement;
+    protected addressInput: HTMLInputElement;
+    paymentButtons: HTMLButtonElement[];
     selectedPayment: string = '';
 
-    constructor(container: HTMLElement, actions?: IFormOrderActions) {
+    constructor(container: HTMLElement, protected events: IEvents, actions?: IFormOrderActions) {
         super(container);
 
         this.paymentButtons = ensureAllElements<HTMLButtonElement>('.order__buttons button', this.container);
@@ -21,10 +22,8 @@ export class FormOrder extends Form<IFormState> {
         this.paymentButtons.forEach((button) => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.paymentButtons.forEach((btn) => btn.classList.remove('button_alt-active'));
-                button.classList.add('button_alt-active');
-                this.selectedPayment = button.getAttribute('name') || '';
-
+                this.events.emit('payment:selected', button);
+                
                 if (actions?.onPaymentChange) {
                     actions.onPaymentChange(this.selectedPayment);
                 }

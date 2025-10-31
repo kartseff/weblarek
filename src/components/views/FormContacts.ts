@@ -1,5 +1,6 @@
 import { Form, IFormState } from './Form';
 import { ensureElement } from '../../utils/utils';
+import { IEvents } from '../base/Events';
 
 interface IFormContactsActions {
     onEmailChange?: (email: string) => void;
@@ -8,10 +9,10 @@ interface IFormContactsActions {
 }
 
 export class FormContacts extends Form<IFormState> {
-    emailInput: HTMLInputElement;
-    phoneInput: HTMLInputElement;
+    protected emailInput: HTMLInputElement;
+    protected phoneInput: HTMLInputElement;
 
-    constructor(container: HTMLElement, actions?: IFormContactsActions) {
+    constructor(container: HTMLElement, protected events: IEvents, actions?: IFormContactsActions) {
         super(container);
 
         this.emailInput = ensureElement<HTMLInputElement>('input[name="email"]', this.container);

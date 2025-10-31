@@ -4,7 +4,7 @@ import { categoryMap } from '../../utils/constants';
 import { CDN_URL } from '../../utils/constants';
 import { ICardActions } from './CardCatalog';
 
-interface ICardPreview extends ICard {
+export interface ICardPreview extends ICard {
 	image: string;
 	description: string;
 	category: string;
@@ -15,10 +15,10 @@ interface ICardPreview extends ICard {
 type CategoryKey = keyof typeof categoryMap;
 
 export class CardPreview extends Card<ICardPreview> {
-	protected imageElement: HTMLImageElement;
-	protected descriptionElement: HTMLElement;
-	protected categoryElement: HTMLElement;
-	protected buyButton: HTMLButtonElement;
+	private imageElement: HTMLImageElement;
+	private descriptionElement: HTMLElement;
+	private categoryElement: HTMLElement;
+	private buyButton: HTMLButtonElement;
 	private _isInCart: boolean = false;
 
 	constructor(container: HTMLElement, actions?: ICardActions) {

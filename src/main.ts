@@ -1,4 +1,6 @@
 import './scss/styles.scss';
+import { Api } from './components/base/Api';
+import { API_URL } from './utils/constants';
 import { Products } from './components/models/Products';
 import { Cart } from './components/models/Cart';
 import { Buyer } from './components/models/Buyer';
@@ -19,6 +21,8 @@ import { IOrderPayload, IProduct} from './types';
 
 const events = new EventEmitter();
 
+const apiUrl = new Api(API_URL);
+const apiService = new ApiService(apiUrl);
 const productsModel = new Products(events);
 const cartModel = new Cart(events);
 const buyerModel = new Buyer(events);
@@ -45,7 +49,67 @@ const cartView = new CartView(cloneTemplate(cartTemplate), {
     },
 });
 
-const apiService = new ApiService();
+const formOrder = new FormOrder(cloneTemplate(orderTemplate), events, {
+    onPaymentChange: (payment: string) => {
+        buyerModel.setPayment(payment as 'card' | 'cash');
+        validateFormOrder();
+    },
+    onAddressChange: (address: string) => {
+        buyerModel.setAddress(address);
+        validateFormOrder();
+    },
+    onNextForm: () => {
+        events.emit('contactsForm:open');
+    }
+});
+
+const formContacts = new FormContacts(cloneTemplate(contactsTemplate), events, {
+    onEmailChange: (email: string) => {
+        buyerModel.setEmail(email);
+        validateFormContacts();
+    },
+    onPhoneChange: (phone: string) => {
+        buyerModel.setPhone(phone);
+        validateFormContacts();
+    },
+    onOrderDone: () => {
+        events.emit('order:done');
+    }
+});
+
+function validateFormOrder() {
+    let error = '';
+    let valid = true;
+
+    if (buyerModel.validate().payment) {
+        valid = false;
+        error += `${buyerModel.validate().payment} `;
+    }
+
+    if (buyerModel.validate().address) {
+        valid = false;
+        error += `${buyerModel.validate().address}`;
+    }
+
+    formOrder.render({ error, valid });
+}
+
+function validateFormContacts() {
+    let error = '';
+    let valid = true;
+
+    if (buyerModel.validate().email) {
+        valid = false;
+        error += `${buyerModel.validate().email} `;
+    }
+
+    if (buyerModel.validate().phone) {
+        valid = false;
+        error += `${buyerModel.validate().phone}`;
+    }
+
+    formContacts.render({ error, valid });
+}
 
 (async () => {
     try {
@@ -73,26 +137,33 @@ events.on('products:changed', () => {
 
 events.on('card:select', (item: IProduct) => {
     const isAvailable = item.price !== null;
-    let isInCart = cartModel.hasItem(item.id);
+    const isInCart = cartModel.hasItem(item.id);
 
-    const card = new CardPreview(cloneTemplate(cardPreviewTemplate), {
-        onClick: () => {
-            if (isInCart) {
-                cartModel.removeItem(item.id);
-            } else {
-                cartModel.addItem(item);
-            }
-            modal.close();
-        },
+    const cardPreview = new CardPreview(cloneTemplate(cardPreviewTemplate), {
+        onClick: () => events.emit('card:buttonAction', item),
     });
 
-    modal.content = card.render({
+    modal.content = cardPreview.render({
         ...item,
         isInCart,
         isAvailable
-    });   
+    });
     modal.open();
 });
+
+// Действие кнопки товара в превью
+
+events.on('card:buttonAction', (item: IProduct) => {
+    const isInCart = cartModel.hasItem(item.id);
+
+    if (isInCart) {
+        cartModel.removeItem(item.id);
+    } else {
+        cartModel.addItem(item);
+    }
+
+    modal.close();
+})
 
 // Изменение содержимого корзины
 
@@ -125,89 +196,22 @@ events.on('basket:open', () => {
 // Показывает форму оплаты
 
 events.on('orderForm:open', () => {
-    const formOrder = new FormOrder(cloneTemplate(orderTemplate), {
-        onPaymentChange: (payment: string) => {
-            validate();
-            buyerModel.setPayment(payment as 'card' | 'cash');
-        },
-        onAddressChange: (address: string) => {
-            validate();
-            buyerModel.setAddress(address);
-        },
-        onNextForm: () => {
-            events.emit('contactsForm:open');
-        }
-    });
-
-    function validate() {
-        let error = '';
-        let valid = false;
-        const payment = formOrder.selectedPayment;
-        const address = formOrder.addressInput.value.trim();
-
-        if (!payment && !address) {
-            error = 'Необходимо выбрать способ оплаты и указать адрес';
-        } else if (!payment) {
-            error = 'Необходимо выбрать способ оплаты';
-        } else if (!address) {
-            error = 'Необходимо указать адрес';
-        } else {
-            valid = true;
-        }
-
-        formOrder.render({ error, valid });
-    }
-
-    validate();
+    validateFormOrder();
     modal.content = formOrder.render();
 });
+
+// Закрепляет выбранный способ оплаты
+
+events.on('payment:selected', (button: HTMLButtonElement) => {
+    formOrder.paymentButtons.forEach((btn) => btn.classList.remove('button_alt-active'));
+    button.classList.add('button_alt-active');
+    formOrder.selectedPayment = button.getAttribute('name') || '';
+})
 
 // Показывает форму контанктов
 
 events.on('contactsForm:open', () => {
-    const formContacts = new FormContacts(cloneTemplate(contactsTemplate), {
-        onEmailChange: (email: string) => {
-            validate();
-            buyerModel.setEmail(email);
-        },
-        onPhoneChange: (phone: string) => {
-            validate();
-            buyerModel.setPhone(phone);
-        },
-        onOrderDone: () => {
-            events.emit('order:done');
-        }
-    });
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const phoneRegex = /\d{11,}/;
-
-    function validate() {
-        let error = '';
-        let valid = false;
-        const email = formContacts.emailInput.value.trim();
-        const phone = formContacts.phoneInput.value.trim();
-
-        if (!email && !phone) {
-            error = 'Необходимо ввести email и номер телефона';
-        } else if (!email) {
-            error = 'Необходимо ввести email';
-        } else if (!phone) {
-            error = 'Необходимо ввести номер телефона';
-        } else if (!emailRegex.test(email) && !phoneRegex.test(phone.replace(/\D/g, ''))) {
-            error = 'Введите корректные email и номер телефона';
-        } else if (!emailRegex.test(email)) {
-            error = 'Введите корректный email';
-        } else if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
-            error = 'Введите корректный номер телефона';
-        } else {
-            valid = true;
-        }
-
-        formContacts.render({ error, valid });
-    }
-
-    validate();
+    validateFormContacts();
     modal.content = formContacts.render();
 })
 
@@ -218,27 +222,21 @@ events.on('order:done', () => {
     const cartItems = cartModel.getItems();
 
     const orderData: IOrderPayload = {
-        items: cartItems.map((item) => ({
-            productId: item.id,
-            quantity: 1,
-        })),
-        totalPrice: cartModel.getTotal(),
-        buyer: {
-            payment: buyer.payment,
-            address: buyer.address,
-            email: buyer.email,
-            phone: buyer.phone,
-        },
+        payment: buyer.payment,
+        email: buyer.email,
+        phone: buyer.phone,
+        address: buyer.address,
+        total: cartModel.getTotal(),
+        items: cartItems.map((item) => item.id),
     };
 
     const success = new Success(cloneTemplate(successTemplate), events);
-    const total = cartModel.getTotal();
-    
-    modal.content = success.render({ total });
+    const total = orderData.total;
 
     (async () => {
         try {
             await apiService.sendOrder(orderData);
+            modal.content = success.render({ total });
         } catch (err) {
             console.error('Ошибка при отправке заказа:', err);
         }

@@ -12,9 +12,9 @@ interface ICartViewActions {
 }
 
 export class CartView extends Component<ICartView> {
-	protected contentElement: HTMLElement;
-	protected totalPriceElement: HTMLElement;
-	protected orderButton: HTMLButtonElement;
+	private contentElement: HTMLElement;
+	private totalPriceElement: HTMLElement;
+	private orderButton: HTMLButtonElement;
 
 	constructor(container: HTMLElement, actions?: ICartViewActions) {
 		super(container);
@@ -22,6 +22,7 @@ export class CartView extends Component<ICartView> {
 		this.contentElement = ensureElement<HTMLElement>('.basket__list', this.container);
 		this.totalPriceElement = ensureElement<HTMLElement>('.basket__price', this.container);
 		this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
+		this.orderButton.disabled = true;
 
 		if (actions?.onClick) {
 			this.orderButton.addEventListener('click', actions.onClick);

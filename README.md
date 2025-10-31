@@ -130,15 +130,6 @@ interface ICartItem {
   quantity: number — количество единиц товара  
 }
 
-### Интерфейс IOrderPayload
-Интерфейс описывает данные, отправляемые на сервер при оформлении заказа.
-
-interface IOrderPayload {
-  items: ICartItem[] — массив позиций корзины  
-  totalPrice: number — общая сумма заказа  
-  buyer: IBuyer — данные покупателя  
-}
-
 ### Интерфейс IValidationErrors
 Интерфейс описывает ошибки валидации, если такие возникнут.
 
@@ -228,23 +219,28 @@ interface IProductResponse {
 Интерфейс описывает данные, отправляемые на сервер при оформлении заказа.
 
 interface IOrderPayload {
-  items: ICartItem[] — массив позиций корзины
-  totalPrice: number — общая сумма заказа
-  buyer: IBuyer — данные покупателя
+  payment: 'card' | 'cash' | '';
+  email: string; 
+  phone: string; 
+  address: string; 
+  total: number; 
+  items: string[];
 }
 
 ### Интерфейс IOrderResponse
 Интерфейс описывает ответ сервера на POST /order/.
 
-interface IOrderResponse {
-  orderId: string — идентификатор созданного заказа
+interface IOrderResponse { 
+  id: string;
+  total: number;
 }
+
 
 ### Класс ApiService
 Отвечает за взаимодействие с сервером «Веб-Ларёк». Он инкапсулирует методы получения каталога товаров и отправки заказа, используя готовый клиент Api из стартового набора.
 
 Конструктор:
-`constructor(apiClient: IApi = new Api(import.meta.env.VITE_API_ORIGIN))` - принимает экземпляр клиента Api, базовый URL из .env.
+`constructor(apiClient: IApi)` - принимает экземпляр клиента Api
 
 Поля класса:
 `protected apiClient: IApi` — экземпляр клиента Api
@@ -378,8 +374,8 @@ interface ISuccess {
 `constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент модального окна из index.html и экземпляр системы событий
 
 Поля класса:
-`protected closeButton: HTMLButtonElement` — кнопка закрытия (крестик)
-`protected contentElement: HTMLElement` — контент модального окна
+`private closeButton: HTMLButtonElement` — кнопка закрытия (крестик)
+`private contentElement: HTMLElement` — контент модального окна
 
 Методы:
 `open(): void` — открыть модальное окно (добавить класс active)
@@ -393,8 +389,8 @@ interface ISuccess {
 `constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент заголовка из index.html и экземпляр системы событий
 
 Поля класса:
-`protected basketButton: HTMLButtonElement` — кнопка корзины
-`protected counterElement: HTMLElement` — элемент счетчика
+`private basketButton: HTMLButtonElement` — кнопка корзины
+`private counterElement: HTMLElement` — элемент счетчика
 
 Методы:
 `set counter(value: number)` — установить счетчик (отобразить количество товаров)
@@ -406,7 +402,7 @@ interface ISuccess {
 `constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент галереи (каталога товаров) из index.html и экземпляр системы событий
 
 Поля класса:
-`protected catalogElement: HTMLElement` - каталог товаров
+`private catalogElement: HTMLElement` - каталог товаров
 
 Методы:
 `set catalog(items: HTMLElement[])` — отобразить массив карточек товаров (использует replaceChildren для замены содержимого)
@@ -432,8 +428,8 @@ interface ISuccess {
 `constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент карточки из index.html и возможные действия
 
 Поля класса:
-`protected imageElement: HTMLImageElement` — изображение товара
-`protected categoryElement: HTMLElement` — категория с CSS-классом цвета
+`private imageElement: HTMLImageElement` — изображение товара
+`private categoryElement: HTMLElement` — категория с CSS-классом цвета
 
 Методы:
 `set image(value: string)` — установить изображение
@@ -446,10 +442,10 @@ interface ISuccess {
 `constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент ревью карточки из index.html и возможные действия
 
 Поля класса:
-`protected imageElement: HTMLImageElement` — изображение
-`protected descriptionElement: HTMLElement` — описание товара
-`protected categoryElement: HTMLElement` — категория
-`protected buyButton: HTMLButtonElement` — кнопка Купить/Удалить
+`private imageElement: HTMLImageElement` — изображение
+`private descriptionElement: HTMLElement` — описание товара
+`private categoryElement: HTMLElement` — категория
+`private buyButton: HTMLButtonElement` — кнопка Купить/Удалить
 `private _isInCart: boolean = false` — наличие товара в корзине
 
 Методы:
@@ -467,8 +463,8 @@ interface ISuccess {
 `constructor(container: HTMLElement, actions?: ICardActions)` - принимает HTML-элемент строчки карточки в корзине из index.html и возможные действия
 
 Поля класса:
-`protected indexElement: HTMLElement` — номер товара в корзине
-`protected deleteButton: HTMLButtonElement` — кнопка удаления из корзины
+`private indexElement: HTMLElement` — номер товара в корзине
+`private deleteButton: HTMLButtonElement` — кнопка удаления из корзины
 
 Методы:
 `set itemIndex(value: number)` — установить номер товара
@@ -492,11 +488,11 @@ interface ISuccess {
 Форма выбора оплаты и адреса доставки (Шаг 1). Получает способ оплаты и адрес доставки от пользователя.
 
 Конструктор:
-`constructor(container: HTMLElement, actions?: IFormOrderActions)` - принимает HTML-элемент формы выбора оплаты и адреса доставки из index.html и возможные действия
+`constructor(container: HTMLElement, protected events: IEvents, actions?: IFormOrderActions)` - принимает HTML-элемент формы выбора оплаты и адреса доставки из index.html, экземпляр системы действий и возможные действия
 
 Поля класса:
-`protected paymentButtons: HTMLButtonElement[]` — кнопки выбора способа оплаты
-`addressInput: HTMLInputElement` — поле ввода адреса
+`protected addressInput: HTMLInputElement` — поле ввода адреса
+`paymentButtons: HTMLButtonElement[]` — кнопки выбора способа оплаты
 `selectedPayment: string = ''` — текущая выбранная оплата
 
 Методы:
@@ -506,11 +502,11 @@ interface ISuccess {
 Форма ввода email и телефона (Шаг 2). Получает контактные данные покупателя.
 
 Конструктор:
-`constructor(container: HTMLElement, actions?: IFormContactsActions)` - принимает HTML-элемент формы ввода email и телефона из index.html и возможные действия
+`constructor(container: HTMLElement, protected events: IEvents, actions?: IFormContactsActions)` - принимает HTML-элемент формы ввода email и телефона из index.html, экземпляр системы действий и возможные действия
 
 Поля класса:
-`emailInput: HTMLInputElement` — поле ввода email
-`phoneInput: HTMLInputElement` — поле ввода телефона
+`protected emailInput: HTMLInputElement` — поле ввода email
+`protected phoneInput: HTMLInputElement` — поле ввода телефона
 
 Методы:
 Отсутствуют
@@ -522,9 +518,9 @@ interface ISuccess {
 `constructor(container: HTMLElement, actions?: ICartViewActions)` - принимает HTML-элемент корзины из index.html и экземпляр системы действий
 
 Поля класса:
-`protected contentElement: HTMLElement` — контейнер для товаров
-`protected totalPriceElement: HTMLElement` — элемент итоговой цены
-`protected orderButton: HTMLButtonElement` — кнопка «Оформить»
+`private contentElement: HTMLElement` — контейнер для товаров
+`private totalPriceElement: HTMLElement` — элемент итоговой цены
+`private orderButton: HTMLButtonElement` — кнопка «Оформить»
 
 Методы:
 `set content(items: HTMLElement[])` — отобразить список товаров в контейнере (использует replaceChildren)
@@ -539,8 +535,8 @@ interface ISuccess {
 `constructor(container: HTMLElement, protected events: IEvents)` - принимает HTML-элемент окна успешного заказа из index.html и экземпляр системы действий
 
 Поля класса:
-`protected descriptionElement: HTMLElement` — элемент описания с сообщением об успехе
-`protected closeButton: HTMLButtonElement` — кнопка закрытия
+`private descriptionElement: HTMLElement` — элемент описания с сообщением об успехе
+`private closeButton: HTMLButtonElement` — кнопка закрытия
 
 Методы:
 `set total(value: number)` — установить сумму заказа
@@ -554,6 +550,9 @@ interface ISuccess {
 ### Cобытие `card:select`
 Выбор карточки для просмотра превью
 
+### Cобытие `card:buttonAction`
+Действие кнопки товара в превью
+
 ### Cобытие `cart:changed`
 Изменение данных корзины
 
@@ -562,6 +561,9 @@ interface ISuccess {
 
 ### Cобытие `orderForm:open`
 Открытие формы оплаты
+
+### Cобытие `payment:selected`
+Закрепление выбранного способа оплаты
 
 ### Cобытие `contactsForm:open`
 Открытие формы контактов

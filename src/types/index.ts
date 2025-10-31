@@ -32,7 +32,10 @@ export interface IProductResponse {
     items: IProduct[];
 }
 
-export type IOrderResponse = { orderId: string }
+export interface IOrderResponse { 
+    id: string;
+    total: number;
+}
 
 export interface IApi {
     get<T>(path: string): Promise<T>;
@@ -40,12 +43,15 @@ export interface IApi {
 }
 
 export interface ICartItem {
-    productId: string
-    quantity: number
+    productId: string;
+    quantity: number;
 }
 
 export interface IOrderPayload {
-    items: ICartItem[]
-    totalPrice: number
-    buyer: IBuyer
+    payment: 'card' | 'cash' | '';
+    email: string; 
+    phone: string; 
+    address: string; 
+    total: number; 
+    items: string[];
 }

@@ -7,8 +7,8 @@ interface ICardCart extends ICard {
 }
 
 export class CardCart extends Card<ICardCart> {
-	protected indexElement: HTMLElement;
-	protected deleteButton: HTMLButtonElement;
+	private indexElement: HTMLElement;
+	private deleteButton: HTMLButtonElement;
 
 	constructor(container: HTMLElement, actions?: ICardActions) {
 		super(container);

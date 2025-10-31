@@ -7,8 +7,8 @@ interface ISuccess {
 }
 
 export class Success extends Component<ISuccess> {
-    protected descriptionElement: HTMLElement;
-    protected successButton: HTMLButtonElement;
+    private descriptionElement: HTMLElement;
+    private successButton: HTMLButtonElement;
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);

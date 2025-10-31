@@ -48,10 +48,10 @@ export class Buyer {
 
     validate(): IValidationErrors {
         const errors: IValidationErrors = {};
-        if (!this.payment) errors.payment = 'Не выбран способ оплаты';
-        if (!this.address) errors.address = 'Укажите адрес доставки';
-        if (!this.email) errors.email = 'Укажите email';
-        if (!this.phone) errors.phone = 'Укажите телефон';
+        if (!this.payment) errors.payment = 'Необходимо указать способ оплаты';
+        if (!this.address) errors.address = 'Необходимо указать адрес';
+        if (!this.email) errors.email = 'Необходимо указать email';
+        if (!this.phone) errors.phone = 'Необходимо указать телефон';
         return errors;
     }
 }

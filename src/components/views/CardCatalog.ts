@@ -15,8 +15,8 @@ export interface ICardActions {
 type CategoryKey = keyof typeof categoryMap;
 
 export class CardCatalog extends Card<ICardCatalog> {
-	protected imageElement: HTMLImageElement;
-	protected categoryElement: HTMLElement;
+	private imageElement: HTMLImageElement;
+	private categoryElement: HTMLElement;
 
 	constructor(container: HTMLElement, actions?: ICardActions) {
 		super(container);
@@ -35,7 +35,7 @@ export class CardCatalog extends Card<ICardCatalog> {
 
 	set category(value: string) {
 		this.categoryElement.textContent = value;
-        for (const key in categoryMap) {
+		for (const key in categoryMap) {
             this.categoryElement.classList.toggle(categoryMap[key as CategoryKey], key === value);
         }
 	}

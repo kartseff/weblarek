@@ -7,8 +7,8 @@ interface IModal {
 }
 
 export class Modal extends Component<IModal> {
-    protected closeButton: HTMLButtonElement;
-    protected contentElement: HTMLElement;
+    private closeButton: HTMLButtonElement;
+    private contentElement: HTMLElement;
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
